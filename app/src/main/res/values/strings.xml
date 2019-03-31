@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Music + Broadcast</string>
+    <string name="please_manually_allow_storage_permissions_on_your_android_settings">Please Manually Allow Storage Permissions On Your Android Settings and Charge the Device To Run The Broadcast Receiver</string>
+    <string name="play">Play</string>
+    <string name="prev">Prev</string>
+    <string name="next">Next</string>
+    <string name="pause">Pause</string>
+    <string name="now_playing">Now Playing</string>
+</resources>
