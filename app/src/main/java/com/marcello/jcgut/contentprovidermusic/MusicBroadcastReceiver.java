@@ -1,12 +1,10 @@
 package com.marcello.jcgut.contentprovidermusic;
 
-import android.app.Activity;
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.BatteryManager;
-import android.os.Bundle;
 import android.os.Vibrator;
 import android.widget.Toast;
 
@@ -15,6 +13,7 @@ public class MusicBroadcastReceiver extends BroadcastReceiver {
     public MusicBroadcastReceiver(){
     }
 
+    @SuppressLint("UnsafeProtectedBroadcastReceiver")
     @Override
     public void onReceive(Context ctx, Intent intent){
 
@@ -32,7 +31,7 @@ public class MusicBroadcastReceiver extends BroadcastReceiver {
 
             Vibrator musicvib = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
             musicvib.vibrate(500);
-           Intent intent1 = new Intent(ctx, MusicContentBridge.class);
+            Intent intent1 = new Intent(ctx, MusicContentBridge.class);
             ctx.startActivity(intent1);
 
     }

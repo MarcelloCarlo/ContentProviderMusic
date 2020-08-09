@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/ContentProviderMusic.iml" filepath="$PROJECT_DIR$/ContentProviderMusic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/ContentProviderMusic-app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/ContentProviderMusic-app.iml" group="ContentProviderMusic/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/StudioProjects-ContentProviderMusic.iml" filepath="$PROJECT_DIR$/.idea/modules/StudioProjects-ContentProviderMusic.iml" group="ContentProviderMusic" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

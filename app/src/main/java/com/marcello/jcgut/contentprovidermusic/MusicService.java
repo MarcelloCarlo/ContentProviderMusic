@@ -1,25 +1,24 @@
 package com.marcello.jcgut.contentprovidermusic;
 
-import android.app.Activity;
-import android.app.FragmentManager;
 import android.app.Service;
 import android.content.Intent;
 import android.database.Cursor;
-import android.location.Location;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.MediaStore;
-import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.IOException;
+
 
 public class MusicService extends Service {
 
     String[] mCursorCols = new String[]{
             "audio._id AS _id", MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.MIME_TYPE, MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ARTIST_ID, MediaStore.Audio.Media.DURATION};
+
+    Uri MUSIC_URI = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 
     private MediaPlayer mMediaPlayer;
     private Cursor mCursor;
@@ -29,6 +28,11 @@ public class MusicService extends Service {
     public static final String PAUSE_ACTION =  "com.marcello.jcgut.contentprovidermusic.PAUSE_ACTION";
     public static final String NEXT_ACTION = "om.marcello.jcgut.contentprovidermusic.NEXT_ACTION";
     public static final String PREVIOUS_ACTION = "om.marcello.jcgut.contentprovidermusic.PREVIOUS_ACTION";
+
+    public static final String
+            SEND_CURRENT_PLAY = MusicService.class.getName() + "LocationBroadcast",
+            CURRENT_PLAY = "current_play",MISC_INFO = "misc_info";
+
     @Override
     public IBinder onBind(Intent arg0) {
         return null;
@@ -37,11 +41,32 @@ public class MusicService extends Service {
     @Override
     public void onCreate(){
         super.onCreate();
+
+       /* PermissionManager permissionManager = PermissionManager.getInstance(getApplicationContext());
+        permissionManager.checkPermissions(singleton(Manifest.permission.READ_EXTERNAL_STORAGE), new PermissionManager.PermissionRequestListener() {
+            @Override
+            public void onPermissionGranted() {
+                Toast.makeText(getApplicationContext(), "Permissions Granted", Toast.LENGTH_SHORT).show();
+
+            }
+
+            @Override
+            public void onPermissionDenied(DeniedPermissions deniedPermissions) {
+                String deniedPermissionsText = "Denied: " + Arrays.toString(deniedPermissions.toArray());
+                Toast.makeText(getApplicationContext(), deniedPermissionsText, Toast.LENGTH_SHORT).show();
+
+                for (DeniedPermission deniedPermission : deniedPermissions) {
+                    if(deniedPermission.shouldShowRationale()) {
+                        // Display a rationale about why this permission is required
+                    }
+                }
+            }
+        });*/
+
+
         mMediaPlayer = new MediaPlayer();
-
-        Uri MUSIC_URI = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-
         mCursor = getContentResolver().query(MUSIC_URI,mCursorCols,"duration > 10000",null,null);
+
     }
 
     @Override
@@ -50,9 +75,14 @@ public class MusicService extends Service {
 
         String action = intent.getAction();
 
+        assert action != null;
         switch (action) {
             case PLAY_ACTION:
-                play();
+                if (mMediaPlayer.isPlaying()){
+                    pause();
+                } else {
+                    play();
+                }
                 break;
             case PAUSE_ACTION:
                 pause();
@@ -67,11 +97,12 @@ public class MusicService extends Service {
     }
 
     public void play(){
-        inite();
+        initPlay();
     }
 
     public void pause(){
-        stopSelf();
+        mMediaPlayer.pause();
+        //stopSelf();
     }
 
     public void previous(){
@@ -80,7 +111,7 @@ public class MusicService extends Service {
         }else {
             mPlayPosition--;
         }
-        inite();
+        initPlay();
     }
 
     public void next() {
@@ -89,23 +120,27 @@ public class MusicService extends Service {
         }else {
             mPlayPosition++;
         }
-        inite();
+        initPlay();
     }
 
-    public void inite(){
+    public void initPlay(){
+
         mMediaPlayer.reset();
         String dataSource = getDateByPosition(mCursor, mPlayPosition);
         String info = getInfoByPosition(mCursor, mPlayPosition);
 
-        Toast.makeText(getApplicationContext(),info,Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(SEND_CURRENT_PLAY);
+        intent.putExtra(CURRENT_PLAY, info);
+        intent.putExtra(MISC_INFO, dataSource);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+        /*Toast.makeText(getApplicationContext(),info,Toast.LENGTH_SHORT).show();*/
 
         try{
             mMediaPlayer.setDataSource(dataSource);
             mMediaPlayer.prepare();
             mMediaPlayer.start();
-        }catch (IllegalArgumentException ea){
-            ea.printStackTrace();
-        } catch (IOException ea){
+        }catch (IllegalArgumentException | IOException ea){
             ea.printStackTrace();
         }
     }
@@ -113,17 +148,16 @@ public class MusicService extends Service {
     public String getDateByPosition(Cursor c, int position){
         c.moveToPosition(position);
         int dataColumn = c.getColumnIndex(MediaStore.Audio.Media.DATA);
-        String data = c.getString(dataColumn);
-        return data;
+        return c.getString(dataColumn);
     }
 
     public String getInfoByPosition(Cursor c, int position){
         c.moveToPosition(position);
         int titleColumn = c.getColumnIndex(MediaStore.Audio.Media.TITLE);
         int artistColumn = c.getColumnIndex(MediaStore.Audio.Media.ARTIST);
-        String info = c.getString(artistColumn)+" "+c.getString(titleColumn);
+        int albumColumn = c.getColumnIndex(MediaStore.Audio.Media.ALBUM);
 
-        return info;
+        return c.getString(artistColumn)+" - "+c.getString(titleColumn)+" ("+c.getString(albumColumn)+")";
     }
 
 
